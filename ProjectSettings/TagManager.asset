@@ -43,3 +43,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Platform
+    uniqueID: 896060615
+    locked: 0
+  - name: Player
+    uniqueID: 3461613769
+    locked: 0
+  - name: Effect
+    uniqueID: 2727741445
+    locked: 0
+  - name: UI
+    uniqueID: 3561700181
+    locked: 0

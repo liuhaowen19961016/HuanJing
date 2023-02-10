@@ -17,6 +17,7 @@ public class Spawner : MonoSingleton<Spawner>
     public GameObjectPool platformGroup2Pool;
     public GameObjectPool platformGroup3Pool;
     public GameObjectPool diamondPool;
+    public GameObjectPool dieEffectPool;
 
     private void Awake()
     {
@@ -33,6 +34,7 @@ public class Spawner : MonoSingleton<Spawner>
         platformGroup2Pool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(GameMgr.Ins.config.go_platformGruop2, 10, transform);
         platformGroup3Pool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(GameMgr.Ins.config.go_platformSpike, 10, transform);
         diamondPool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(GameMgr.Ins.config.go_diamond, 10, transform);
+        dieEffectPool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(GameMgr.Ins.config.go_dieEffect, 10, transform);
 
         InitData();
 

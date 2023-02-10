@@ -9,7 +9,7 @@ public class UI_Win_Game : MonoBehaviour
     public Button btn_pause;
     public Text txt_score;
     public Text txt_diamond;
-    public Image img_bg;
+    public SpriteRenderer img_bg;
 
     private void Awake()
     {
@@ -31,11 +31,6 @@ public class UI_Win_Game : MonoBehaviour
         MsgSystem.AddListener(MsgConst.StartGame, StartGame);
         MsgSystem.AddListener(MsgConst.MoveFinish, OnMoveFinish);
         MsgSystem.AddListener(MsgConst.EatDiamond, OnEatDiamond);
-    }
-
-    private void OnBackMenu()
-    {
-        gameObject.SetActive(false);
     }
 
     private void OnMoveFinish()

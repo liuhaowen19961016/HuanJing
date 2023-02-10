@@ -6,19 +6,18 @@ using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
-    public Rigidbody2D rigid;//刚体组件
+    public Rigidbody2D rigid;
+    public SpriteRenderer sr;
 
     private GameObject go_curPlatform;
     private bool isPressRight;//是否按下屏幕右边
     private bool canMove;//能否移动
 
-    private GameObjectPool dieEffectPool;
+    Sequence moveSequence;//移动的队列
 
     private void Awake()
     {
         Init();
-
-        dieEffectPool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(GameMgr.Ins.config.go_dieEffect, 10, transform);
     }
 
     private void Init()
@@ -29,16 +28,14 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (transform.position.y - Camera.main.transform.position.y < -6)
-        {
-            Debug.Log("平台落下");
-            Gameover();
-        }
+        //if (transform.position.y - Camera.main.transform.position.y < -6)
+        //{
+        //    Debug.Log("平台落下");
+        //    GameoverCommon();
+        //}
         if (go_curPlatform != null && go_curPlatform.GetComponent<Platform>() != null && go_curPlatform.GetComponent<Platform>().isFall)
         {
-            rigid.gravityScale = 1;
-            GameMgr.Ins.isGameover = true;
-            canMove = false;
+            GameoverCommon();
         }
         if (Input.GetMouseButtonDown(0) && canMove && !GameMgr.Ins.isPause && !GameMgr.Ins.isGameover && !UIUtils.IsPointOverUI())
         {
@@ -66,10 +63,10 @@ public class Player : MonoBehaviour
             transform.localScale = new Vector3(-1, 1, 1);
             nextPos = curPlatformPos + new Vector3(-GameMgr.Ins.config.platformOffset.x, GameMgr.Ins.config.platformOffset.y);
         }
-        Sequence sequence = DOTween.Sequence();
-        sequence.Append(transform.DOMove(nextPos + new Vector3(0, 0.8f, 0), 0.05f).SetEase(Ease.Linear));
-        sequence.Append(transform.DOMove(nextPos + new Vector3(0, 0.6f, 0), 0.01f).SetEase(Ease.Linear));
-        sequence.OnComplete(() =>
+        moveSequence = DOTween.Sequence();
+        moveSequence.Append(transform.DOMove(nextPos + new Vector3(0, 0.8f, 0), 0.05f).SetEase(Ease.Linear));
+        moveSequence.Append(transform.DOMove(nextPos + new Vector3(0, 0.6f, 0), 0.01f).SetEase(Ease.Linear));
+        moveSequence.OnComplete(() =>
         {
             FinishMove();
         });
@@ -80,26 +77,28 @@ public class Player : MonoBehaviour
     /// </summary>
     private void FinishMove()
     {
-        RaycastHit2D hitInfo = Physics2D.Raycast(transform.position - transform.up * 0.5f, -transform.up, 0.1f);
+        RaycastHit2D hitInfo = Physics2D.Raycast(transform.position + Vector3.down * 0.5f, -transform.up, 0.1f);
         //跳空
         if (hitInfo.collider == null)
         {
             Debug.Log("跳空");
-            Gameover();
+            GameoverCommon();
+            MsgSystem.Dispatch(MsgConst.Gameover);
         }
         //障碍
         else if (hitInfo.collider != null && hitInfo.collider.tag.Equals("Barriar"))
         {
-            GameObject effect = dieEffectPool.Get();
+            Debug.Log("障碍");
+            GameObject effect = Spawner.Ins.dieEffectPool.Get();
             TimerMgr.Ins.Register(0.5f, onComplete: () =>
               {
-                  dieEffectPool.Put(effect);
+                  Spawner.Ins.dieEffectPool.Put(effect);
               });
             effect.transform.position = transform.position;
             effect.SetActive(true);
             Destroy(gameObject);
-            Gameover();
-            Debug.Log("障碍");
+            GameoverCommon();
+            MsgSystem.Dispatch(MsgConst.Gameover);
         }
         else
         {
@@ -111,11 +110,19 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void Gameover()
+    /// <summary>
+    /// 游戏失败通用的方法
+    /// </summary>
+    private void GameoverCommon()
     {
+        //if (moveSequence != null)
+        //{
+        //    moveSequence.Kill();
+        //}
+        moveSequence.Kill();
+        sr.sortingOrder = -1;
         rigid.gravityScale = 1;
         canMove = false;
-        MsgSystem.Dispatch(MsgConst.Gameover);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
