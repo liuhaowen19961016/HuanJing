@@ -83,7 +83,6 @@ public class Player : MonoBehaviour
         {
             Debug.Log("跳空");
             GameoverCommon();
-            MsgSystem.Dispatch(MsgConst.Gameover);
         }
         //障碍
         else if (hitInfo.collider != null && hitInfo.collider.tag.Equals("Barriar"))
@@ -98,7 +97,6 @@ public class Player : MonoBehaviour
             effect.SetActive(true);
             Destroy(gameObject);
             GameoverCommon();
-            MsgSystem.Dispatch(MsgConst.Gameover);
         }
         else
         {
@@ -115,14 +113,15 @@ public class Player : MonoBehaviour
     /// </summary>
     private void GameoverCommon()
     {
-        //if (moveSequence != null)
-        //{
-        //    moveSequence.Kill();
-        //}
         moveSequence.Kill();
         sr.sortingOrder = -1;
         rigid.gravityScale = 1;
         canMove = false;
+        GameMgr.Ins.isGameover = true;
+        TimerMgr.Ins.Register(1, onComplete: () =>
+          {
+              MsgSystem.Dispatch(MsgConst.Gameover);
+          });
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

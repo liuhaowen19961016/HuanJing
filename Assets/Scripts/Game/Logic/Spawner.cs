@@ -54,7 +54,7 @@ public class Spawner : MonoSingleton<Spawner>
         inSpikeSpawn = false;
         isRight = true;
         nextSpawnPos = GameMgr.Ins.config.initSpawnPos_platform;
-        curGroupRemainCount = 10;//初始化生成10个平台
+        curGroupRemainCount = 5;//初始化生成5个平台
     }
 
     /// <summary>

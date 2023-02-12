@@ -20,6 +20,16 @@ public class GameMgr : MonoSingleton<GameMgr>
     public int score;
     public int diamond;
 
+    private void Awake()
+    {
+        MsgSystem.AddListener(MsgConst.Gameover, Gameover);
+    }
+
+    private void OnDestroy()
+    {
+        MsgSystem.RemoveListener(MsgConst.Gameover, Gameover);
+    }
+
     /// <summary>
     /// 初始化游戏
     /// </summary>
@@ -38,6 +48,14 @@ public class GameMgr : MonoSingleton<GameMgr>
         Spawner.Ins.InitMap();
 
         MsgSystem.Dispatch(MsgConst.StartGame);
+    }
+
+    /// <summary>
+    /// 游戏结束
+    /// </summary>
+    private void Gameover()
+    {
+        UIMgr.Ins.gameoverPanel.SetActive(true);
     }
 
     /// <summary>

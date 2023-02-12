@@ -9,7 +9,7 @@ public class UI_Win_Gameover : MonoBehaviour
     public Button btn_menu;
     public Text txt_curScore;
     public Text txt_curDiamond;
-    public Text txt_bextScore;
+    public Text txt_bestScore;
 
     private void Awake()
     {

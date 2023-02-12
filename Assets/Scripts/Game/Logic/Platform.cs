@@ -31,13 +31,13 @@ public class Platform : MonoBehaviour
 
     private void OnPlayerStartMove()
     {
-        return;
         if (!beginTimer)
         {
             beginTimer = true;
             TimerMgr.Ins.Register(fallTime, onComplete: () =>
             {
                 isFall = true;
+                beginTimer = false;
                 rigid.gravityScale = 1;
                 TimerMgr.Ins.Register(2, onComplete: () =>
                 {
