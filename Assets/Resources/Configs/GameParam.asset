@@ -30,7 +30,7 @@ MonoBehaviour:
     type: 3}
   go_dieEffect: {fileID: 7670499044788589500, guid: 441b141c75845bd44932401c4b75d288,
     type: 3}
-  go_diamond: {fileID: 7670499044788589500, guid: 441b141c75845bd44932401c4b75d288,
+  go_diamond: {fileID: 272788109745659693, guid: b84e0ed1ace42334c8e62a20f2db064d,
     type: 3}
   go_player: {fileID: 3916789184888600938, guid: 5b21ee0d57efae0499cc1415cf0452ca,
     type: 3}

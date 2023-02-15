@@ -33,11 +33,11 @@ public class PlatformGroup : Platform
 
     public override void Put()
     {
-      if(randomDir)
+        if (randomDir)
         {
             Spawner.Ins.platformGroup1Pool.Put(gameObject);
         }
-        else 
+        else
         {
             Spawner.Ins.platformGroup2Pool.Put(gameObject);
         }

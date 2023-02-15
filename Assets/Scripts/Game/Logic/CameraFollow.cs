@@ -14,6 +14,11 @@ public class CameraFollow : MonoBehaviour
         MsgSystem.AddListener(MsgConst.StartGame, Init);
     }
 
+    public void Reset()
+    {
+        transform.position = new Vector3(0, 0, -10);
+    }
+
     private void Init()
     {
         playerTrans = GameObject.FindGameObjectWithTag("Player").transform;

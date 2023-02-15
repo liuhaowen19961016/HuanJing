@@ -28,13 +28,9 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        //if (transform.position.y - Camera.main.transform.position.y < -6)
-        //{
-        //    Debug.Log("平台落下");
-        //    GameoverCommon();
-        //}
-        if (go_curPlatform != null && go_curPlatform.GetComponent<Platform>() != null && go_curPlatform.GetComponent<Platform>().isFall)
+        if (!GameMgr.Ins.isGameover && go_curPlatform != null && go_curPlatform.GetComponent<Platform>() != null && go_curPlatform.GetComponent<Platform>().isFall)
         {
+            Debug.Log("平台落下");
             GameoverCommon();
         }
         if (Input.GetMouseButtonDown(0) && canMove && !GameMgr.Ins.isPause && !GameMgr.Ins.isGameover && !UIUtils.IsPointOverUI())
@@ -103,7 +99,10 @@ public class Player : MonoBehaviour
             Debug.Log("正常移动");
             canMove = true;
             GameMgr.Ins.score++;
-            MsgSystem.Dispatch(MsgConst.PlayerStartMove);
+            if (!GameMgr.Ins.playerStartMove)
+            {
+                GameMgr.Ins.playerStartMove = true;
+            }
             MsgSystem.Dispatch(MsgConst.MoveFinish);
         }
     }

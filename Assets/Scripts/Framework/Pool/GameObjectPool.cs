@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -8,10 +7,11 @@ using UnityEngine;
 public class GameObjectPool
 {
     private string m_GoKey;//游戏物体唯一key
-    private int m_Capacity;//容量
+    private int m_Capacity;//容量（-1为无限容量）
     public GameObject m_Prefab;//预制体
     private Transform m_Parent;//父物体
-    public Stack<GameObject> m_GoStack = new Stack<GameObject>();//游戏物体栈
+    private List<GameObject> m_GoList_Active = new List<GameObject>();//游戏物体列表（激活的）
+    private List<GameObject> m_GoList_Inactive = new List<GameObject>();//游戏物体列表（未激活的）
 
     /// <summary>
     /// 初始化
@@ -31,17 +31,24 @@ public class GameObjectPool
     /// <summary>
     /// 实例化
     /// </summary>
-    private GameObject Instantiate(bool isActive = false, bool addToStack = true)
+    private GameObject Instantiate()
     {
         GameObject go = null;
+        if (m_Prefab == null)
+        {
+            Debug.LogError($"无法实例化，m_Prefab为null");
+            return go;
+        }
         go = GameObject.Instantiate(m_Prefab);
+        if (go == null)
+        {
+            Debug.LogError($"实例化游戏物体失败，m_Prefab：{m_Prefab}");
+            return go;
+        }
         go.transform.SetParent(m_Parent, false);
         go.name = m_GoKey;
-        go.SetActive(isActive);
-        if (addToStack)
-        {
-            m_GoStack.Push(go);
-        }
+        m_GoList_Inactive.Add(go);
+        go.SetActive(false);
         return go;
     }
 
@@ -51,14 +58,17 @@ public class GameObjectPool
     public GameObject Get()
     {
         GameObject go = null;
-        if (m_GoStack.Count <= 0)
+        if (m_GoList_Inactive.Count <= 0)
         {
-            go = Instantiate(addToStack: false);
+            go = Instantiate();
         }
         else
         {
-            go = m_GoStack.Pop();
+            go = m_GoList_Inactive[0];
         }
+        m_GoList_Inactive.Remove(go);
+        m_GoList_Active.Add(go);
+        go.SetActive(true);
         return go;
     }
 
@@ -68,23 +78,49 @@ public class GameObjectPool
     public bool Put(GameObject go)
     {
         bool ret = false;
-        if (go.name != m_GoKey)
+        if (m_GoList_Inactive.Contains(go))
         {
-            Debug.LogError($"无法放入对象池，此游戏物体与池子中的游戏物体不是同一个GameObject，\n此游戏物体：{go.name}，池子中游戏物体：{m_Prefab.name}[pool]");
+            return ret;
+        }
+        if (!m_GoList_Active.Contains(go))
+        {
+            Debug.LogError($"无法放入对象池，此游戏物体不由对象池管理或此游戏物体与池子中的游戏物体不是同一个GameObject，\n此游戏物体：{go.name}，池子中游戏物体：{m_Prefab.name}[pool]");
+            GameObject.Destroy(go);
         }
         else
         {
-            if (m_Capacity > 0 && m_GoStack.Count >= m_Capacity)
+            m_GoList_Active.Remove(go);
+            if (m_Capacity > 0 && m_GoList_Inactive.Count >= m_Capacity)
             {
                 GameObject.Destroy(go);
             }
             else
             {
+                m_GoList_Inactive.Add(go);
                 go.SetActive(false);
-                m_GoStack.Push(go);
+                go.GetComponent<PoolObject>()?.Reset();
                 ret = true;
             }
         }
         return ret;
     }
+
+    /// <summary>
+    /// 将所有激活的放回池子
+    /// </summary>
+    public void PutAll()
+    {
+        for (int i = m_GoList_Active.Count - 1; i >= 0; i--)
+        {
+            Put(m_GoList_Active[i]);
+        }
+    }
+}
+
+/// <summary>
+/// 池子物体
+/// </summary>
+public class PoolObject : MonoBehaviour
+{
+    public virtual void Reset() { }
 }

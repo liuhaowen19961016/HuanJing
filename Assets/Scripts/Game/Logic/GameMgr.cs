@@ -10,9 +10,11 @@ public enum EGameTheme
 
 public class GameMgr : MonoSingleton<GameMgr>
 {
+    public Player player;
     private EGameTheme gameTheme;//主题
     public Sprite platformSprite { get; set; }//平台图
     public GameParam config { get; set; }//配置
+    public bool playerStartMove;
 
     public bool isGameover;
     public bool isPause;
@@ -38,9 +40,11 @@ public class GameMgr : MonoSingleton<GameMgr>
         config = GameParam.Get();
 
         //游戏数据
+        player = null;
         score = 0;
         diamond = 0;
         isPause = false;
+        playerStartMove = false;
         isGameover = false;
         gameTheme = (EGameTheme)Random.Range(0, 2);
         platformSprite = GetRandomSprite_Common();
@@ -48,6 +52,24 @@ public class GameMgr : MonoSingleton<GameMgr>
         Spawner.Ins.InitMap();
 
         MsgSystem.Dispatch(MsgConst.StartGame);
+    }
+
+    /// <summary>
+    /// 重置游戏
+    /// </summary>
+    public void ResetGame()
+    {
+        if (player != null)
+        {
+            Destroy(player.gameObject);
+        }
+        Camera.main.GetComponent<CameraFollow>().Reset();
+        Spawner.Ins.platformPool.PutAll();
+        Spawner.Ins.platformGroup1Pool.PutAll();
+        Spawner.Ins.platformGroup2Pool.PutAll();
+        Spawner.Ins.platformGroup3Pool.PutAll();
+        Spawner.Ins.dieEffectPool.PutAll();
+        Spawner.Ins.diamondPool.PutAll();
     }
 
     /// <summary>

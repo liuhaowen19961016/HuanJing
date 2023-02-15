@@ -190,6 +190,7 @@ public class Spawner : MonoSingleton<Spawner>
             {
                 GameObject diamond = diamondPool.Get();
                 diamond.transform.position = go.transform.position + Vector3.up * 0.5f;
+                diamond.SetActive(true);
             }
         }
         if (isRight)
@@ -209,6 +210,7 @@ public class Spawner : MonoSingleton<Spawner>
     {
         GameObject go = Instantiate(GameMgr.Ins.config.go_player);
         go.transform.position = GameMgr.Ins.config.initSpawnPos_player;
+        GameMgr.Ins.player = go.GetComponent<Player>();
     }
 
     /// <summary>

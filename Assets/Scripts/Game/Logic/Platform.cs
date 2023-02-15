@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Platform : MonoBehaviour
+public class Platform : PoolObject
 {
     public SpriteRenderer[] sr_common;
     private Rigidbody2D rigid;
@@ -10,15 +10,13 @@ public class Platform : MonoBehaviour
     protected Vector3 initPosRight = new Vector3(1.09f, 0, 0);
     protected Vector3 initPosLeft = new Vector3(-1.09f, 0, 0);
 
+    private bool startTimer;
     private float fallTime = 2;
-    private bool beginTimer;
     public bool isFall = false;
 
     private void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
-
-        MsgSystem.AddListener(MsgConst.PlayerStartMove, OnPlayerStartMove);
     }
 
     public virtual void Init()
@@ -27,24 +25,38 @@ public class Platform : MonoBehaviour
         {
             sr.sprite = GameMgr.Ins.platformSprite;
         }
+
+        if (GameMgr.Ins.playerStartMove)
+        {
+            Fall();
+        }
     }
 
-    private void OnPlayerStartMove()
+    private void Update()
     {
-        if (!beginTimer)
+        if (GameMgr.Ins.playerStartMove && !startTimer)
         {
-            beginTimer = true;
-            TimerMgr.Ins.Register(fallTime, onComplete: () =>
-            {
-                isFall = true;
-                beginTimer = false;
-                rigid.gravityScale = 1;
-                TimerMgr.Ins.Register(2, onComplete: () =>
-                {
-                    Put();
-                });
-            });
+            Fall();
         }
+    }
+
+    private void Fall()
+    {
+        TimerMgr.Ins.Register(fallTime,
+                onRegister: () =>
+                {
+                    startTimer = true;
+                },
+                onComplete: () =>
+                {
+                    isFall = true;
+                    rigid.gravityScale = 1;
+                    TimerMgr.Ins.Register(2, onComplete: () =>
+                    {
+                        ResetData();
+                        Put();
+                    });
+                });
     }
 
     public virtual void Put()
@@ -52,15 +64,16 @@ public class Platform : MonoBehaviour
         Spawner.Ins.platformPool.Put(gameObject);
     }
 
-    private void ResetData()
+    public virtual void ResetData()
     {
-        beginTimer = false;
+        startTimer = false;
         rigid.gravityScale = 0;
         isFall = false;
     }
 
-    private void OnDestroy()
+    public override void Reset()
     {
-        MsgSystem.RemoveListener(MsgConst.PlayerStartMove, OnPlayerStartMove);
+        TimerMgr.Ins.DisposeAll();
+        ResetData();
     }
 }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Platform
   - Barriar
+  - Diamond
   layers:
   - Default
   - TransparentFX
@@ -45,6 +46,9 @@ TagManager:
     locked: 0
   - name: Platform
     uniqueID: 896060615
+    locked: 0
+  - name: Diamond
+    uniqueID: 4152302893
     locked: 0
   - name: Player
     uniqueID: 3461613769
