@@ -59,10 +59,6 @@ public class GameMgr : MonoSingleton<GameMgr>
     /// </summary>
     public void ResetGame()
     {
-        if (player != null)
-        {
-            Destroy(player.gameObject);
-        }
         Camera.main.GetComponent<CameraFollow>().Reset();
         Spawner.Ins.platformPool.PutAll();
         Spawner.Ins.platformGroup1Pool.PutAll();
@@ -70,6 +66,10 @@ public class GameMgr : MonoSingleton<GameMgr>
         Spawner.Ins.platformGroup3Pool.PutAll();
         Spawner.Ins.dieEffectPool.PutAll();
         Spawner.Ins.diamondPool.PutAll();
+        if (player != null)
+        {
+            Destroy(player.gameObject);
+        }
     }
 
     /// <summary>

@@ -40,9 +40,11 @@ public class Platform : PoolObject
         }
     }
 
+    TimerTask task1;
+    TimerTask task2;
     private void Fall()
     {
-        TimerMgr.Ins.Register(fallTime,
+        task1 = TimerMgr.Ins.Register(fallTime,
                 onRegister: () =>
                 {
                     startTimer = true;
@@ -51,11 +53,11 @@ public class Platform : PoolObject
                 {
                     isFall = true;
                     rigid.gravityScale = 1;
-                    TimerMgr.Ins.Register(2, onComplete: () =>
-                    {
-                        ResetData();
-                        Put();
-                    });
+                    task2 = TimerMgr.Ins.Register(2, onComplete: () =>
+                      {
+                          ResetData();
+                          Put();
+                      });
                 });
     }
 
@@ -69,11 +71,18 @@ public class Platform : PoolObject
         startTimer = false;
         rigid.gravityScale = 0;
         isFall = false;
+        if (task1 != null)
+        {
+            task1.Dispose();
+        }
+        if (task2 != null)
+        {
+            task2.Dispose();
+        }
     }
 
     public override void Reset()
     {
-        TimerMgr.Ins.DisposeAll();
         ResetData();
     }
 }
