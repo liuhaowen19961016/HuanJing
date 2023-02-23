@@ -68,7 +68,7 @@ public class GameMgr : MonoSingleton<GameMgr>
         Spawner.Ins.diamondPool.PutAll();
         if (player != null)
         {
-            Destroy(player.gameObject);
+            DestroyImmediate(player.gameObject);
         }
     }
 
