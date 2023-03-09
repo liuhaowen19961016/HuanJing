@@ -31,11 +31,6 @@ public class UI_Win_Shop : BaseUI
     {
         base.OnView();
 
-        RefreshView();
-    }
-
-    private void Start()
-    {
         m_CurIndex = 0;
         normalizePos = new float[GameMgr.Ins.Config.skins.Length];
         float tempNormalizePos = 0;
@@ -45,6 +40,9 @@ public class UI_Win_Shop : BaseUI
             normalizePos[i] = tempNormalizePos;
             tempNormalizePos += normalizePosOffset;
         }
+
+        RefreshView();
+        m_sr.horizontalNormalizedPosition = normalizePos[GameMgr.Ins.GameData.curSelecteSkin];
     }
 
     private void OnBuySkin()
@@ -147,6 +145,7 @@ public class UI_Win_Shop : BaseUI
                 GameObject go = Instantiate(GameMgr.Ins.Config.go_skin);
                 go.transform.SetParent(m_sr.content, false);
                 itemSkin = go.GetComponent<Item_Skin>();
+                m_SkinItems.Add(itemSkin);
             }
             itemSkin.Set(GameMgr.Ins.Config.skins[i]);
             itemSkin.SetGray(!GameMgr.Ins.GameData.isUnlock[i]);
