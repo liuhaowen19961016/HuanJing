@@ -36,7 +36,7 @@ public class Item_Tooltip : MonoBehaviour
     public void Set(TooltipData data)
     {
         m_Data = data;
-        m_UICanvas = GameObject.Find("Canvas").GetComponent<Canvas>();
+        m_UICanvas = GameObject.Find("UICanvas").GetComponent<Canvas>();
 
         CalcShowRectBorder();
         CalcDirType();

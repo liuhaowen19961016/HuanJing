@@ -17,7 +17,7 @@ public class TooltipMgr : MonoSingleton<TooltipMgr>
         {
             if (m_ParentRect == null)
             {
-                m_ParentRect = GameObject.Find("Canvas").GetComponent<RectTransform>();
+                m_ParentRect = GameObject.Find("UICanvas").GetComponent<RectTransform>();
             }
             return m_ParentRect;
         }

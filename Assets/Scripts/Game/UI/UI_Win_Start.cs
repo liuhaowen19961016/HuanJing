@@ -16,12 +16,13 @@ public class UI_Win_Start : BaseUI
     {
         btn_start.onClick.AddListener(() =>
         {
-            UIMgr.Ins.Close<UI_Win_Start>();
+            UIMgr.Ins.Close(Const.startPanelPath);
+            UIMgr.Ins.Show(Const.gamePanelPath);
             GameMgr.Ins.InitGame();
         });
         btn_shop.onClick.AddListener(() =>
         {
-            UIMgr.Ins.Open<UI_Win_Shop>();
+            UIMgr.Ins.Show(Const.shopPanelPath);
         });
         btn_rank.onClick.AddListener(() =>
         {

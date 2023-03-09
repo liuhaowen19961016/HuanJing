@@ -65,6 +65,7 @@ public class Spawner : MonoSingleton<Spawner>
     /// </summary>
     private void DecidePath()
     {
+        Debug.Log("DecidePath");
         curGroupRemainCount--;
         if (curGroupRemainCount < 0)
         {

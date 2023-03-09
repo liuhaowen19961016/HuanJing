@@ -81,7 +81,7 @@ public class GameMgr : MonoSingleton<GameMgr>
     public void Gameover()
     {
         isGameover = true;
-        UIMgr.Ins.Open<UI_Win_Gameover>();
+        UIMgr.Ins.Show(Const.gameoverPanelPath);
     }
 
     /// <summary>

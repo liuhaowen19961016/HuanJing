@@ -1,16 +1,14 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 /// <summary>
 /// UI基类
 /// </summary>
 public class BaseUI : MonoBehaviour
 {
-    [HideInInspector]
-    public string uiParentName;//此UI的父结点名称
-
     /// <summary>
     /// 打开UI时
     /// </summary>
@@ -26,14 +24,18 @@ public class BaseUI : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+}
 
-    /// <summary>
-    /// 关闭界面
-    /// </summary>
-    public void Close(bool isDestroy)
-    {
-        UIMgr.Ins.Close(GetType().Name, isDestroy);
-    }
+/// <summary>
+/// UI在Canvas下的层级
+/// </summary>
+public enum EUILayer
+{
+    Hud = 0,
+    Window,
+    Popups,
+    Guide,
+    Top,
 }
 
 /// <summary>
@@ -41,243 +43,235 @@ public class BaseUI : MonoBehaviour
 /// </summary>
 public class UIMgr : MonoSingleton<UIMgr>
 {
-    public const string UIDir = "Prefabs/UI/";//UI目录
-
-    //渲染UI的画布
-    Canvas uiCanvas;
-    public Canvas UICanvas { get { return uiCanvas; } }
-    //渲染UI的相机
-    Camera uiCamera;
-    public Camera UICamera { get { return uiCamera; } }
-
-    //场景中的UI
-    Dictionary<string, BaseUI> uiCache = new Dictionary<string, BaseUI>();
-    public Dictionary<string, BaseUI> UICache { get { return uiCache; } }
-
-    public void Awake()
+    public class UIConfig
     {
-        if (uiCanvas == null)
-        {
-            uiCanvas = CreateUICanvas(CreateUICamera());
-        }
+        public string uiPath;
+        public EUILayer uiLayer;
     }
 
-    #region Interface
+    /// <summary>
+    /// UI界面数据
+    /// </summary>
+    public class UIInfo
+    {
+        public GameObject go;
+    }
+
+    private Canvas m_UICanvas;//UI画布
+    public Canvas UICanvas
+    {
+        get { return m_UICanvas; }
+    }
+    private Camera m_UICamera;//UI相机
+    public Camera UICamera
+    {
+        get { return m_UICamera; }
+    }
+    private CanvasScaler m_UICanvasScaler;//CanvasScaler组件
+    public CanvasScaler UICanvasScaler
+    {
+        get { return m_UICanvasScaler; }
+    }
+    private RectTransform m_UIContainer;//UI父节点
+    public RectTransform UIContainer
+    {
+        get { return UIContainer; }
+    }
+
+    private Dictionary<string, UIConfig> m_UIPath2UIConfig = new Dictionary<string, UIConfig>();//根据配表缓存所有的界面配置 <UI路径 , UI界面配置>
+    private Dictionary<EUILayer, Transform> m_Layer2Trans = new Dictionary<EUILayer, Transform>();//<UI层级 , 对应的节点>
+
+    private Dictionary<string, UIInfo> m_UICache = new Dictionary<string, UIInfo>();//缓存当前已实例化的UI界面数据 <UI路径 , UI界面数据>
+
+    #region 外部调用接口
 
     /// <summary>
-    /// 设置Canvas缩放
+    /// 初始化（游戏初始化时调用一次）
     /// </summary>
-    /// <param name="referResolution">参考的分辨率</param>
+    /// <param name="referResolution">参照的分辨率</param>
     /// <param name="isLandscape">是否为横屏</param>
-    public void SetCanvasScaler(Vector2 referResolution, bool isLandscape)
+    public void Init(Vector2 referResolution, bool isLandscape)
     {
-        CanvasScaler canvasScaler = uiCanvas.GetComponent<CanvasScaler>();
-        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasScaler.matchWidthOrHeight = isLandscape ? 1 : 0;
-        canvasScaler.referenceResolution = referResolution;
+        //初始化数据
+        InitData();
+        //初始化UI相关的游戏物体和组件
+        if (m_UICamera == null)
+        {
+            CreateUICamera();
+        }
+        if (m_UICanvas == null)
+        {
+            CreateUICanvas();
+        }
+        m_UICanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        m_UICanvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+        m_UICanvasScaler.matchWidthOrHeight = isLandscape ? 1 : 0;
+        m_UICanvasScaler.referenceResolution = referResolution;
     }
 
     /// <summary>
-    /// 打开UI
+    /// 显示界面
     /// </summary>
-    public T Open<T>(string uiParentName = "")
-        where T : BaseUI
+    public void Show(string uiPath)
     {
-        string uiName = typeof(T).Name;
-        if (!uiCache.ContainsKey(uiName))
+        if (m_UICache.TryGetValue(uiPath, out UIInfo outUIInfo))
         {
-            if (!CreateUI(uiName, uiParentName))
+            outUIInfo.go.transform.SetAsLastSibling();
+            outUIInfo.go.GetComponent<BaseUI>().OnView();
+        }
+        else
+        {
+            GameObject uiGo = CreateUI(uiPath);
+            if (uiGo != null)
             {
-                return default;
+                outUIInfo = new UIInfo { go = uiGo };
+                m_UICache.Add(uiPath, outUIInfo);
+                outUIInfo.go.GetComponent<BaseUI>().OnView();
             }
         }
-
-        BaseUI ui = uiCache[uiName];
-        ui.OnView();
-        ui.transform.SetAsLastSibling();
-
-        return ui as T;
     }
 
     /// <summary>
-    /// 关闭UI
+    /// 关闭界面
     /// </summary>
-    public void Close<T>(bool isDestroy = false)
-        where T : BaseUI
+    public bool Close(string uiPath, bool isDestroy = false)
     {
-        string uiName = typeof(T).Name;
-        Close(uiName, isDestroy);
-    }
-
-    /// <summary>
-    /// 关闭UI
-    /// </summary>
-    public void Close(string uiName, bool isDestroy = false)
-    {
-        if (!uiCache.ContainsKey(uiName))
+        if (m_UICache.TryGetValue(uiPath, out UIInfo outUIInfo))
         {
-            Debug.LogError("场景中没有此UI：" + uiName);
-            return;
-        }
-        List<string> uiChildList = FindChild(uiName);
-        foreach (var child in uiChildList)
-        {
-            uiCache[child].OnDisView();
-        }
-        uiCache[uiName].OnDisView();
-        if (isDestroy)
-        {
-            foreach (var child in uiChildList)
+            outUIInfo.go.GetComponent<BaseUI>().OnDisView();
+            if (isDestroy)
             {
-                Dispose(child);
+                Destroy(outUIInfo.go);
+                outUIInfo.go = null;
+                m_UICache.Remove(uiPath);
             }
-            Dispose(uiName);
+            return true;
         }
+        return false;
     }
 
-    /// <summary>
-    /// 查找UI
-    /// </summary>
-    public T Find<T>()
-        where T : BaseUI
-    {
-        string uiName = typeof(T).Name;
-        if (!uiCache.ContainsKey(uiName))
-        {
-            Debug.LogError("场景中没有此UI：" + uiName);
-            return default;
-        }
-        return uiCache[uiName] as T;
-    }
-
-    /// <summary>
-    /// 查找最顶部的UI
-    /// </summary>
-    public BaseUI FindTop()
-    {
-        for (int i = uiCanvas.transform.childCount - 1; i >= 0; i--)
-        {
-            if (uiCanvas.transform.GetChild(i).GetComponent<BaseUI>() != null
-                && uiCanvas.transform.GetChild(i).gameObject.activeSelf)
-            {
-                return uiCanvas.transform.GetChild(i).GetComponent<BaseUI>();
-            }
-        }
-        Debug.LogError("场景中没有UI，查找失败");
-        return null;
-    }
-
-    #endregion
-
-    #region Tools
-
-    /// <summary>
-    /// 查找某一个UI的子结点
-    /// </summary>
-    List<string> FindChild(string uiName)
-    {
-        List<string> uiChildList = new List<string>();
-        foreach (var ui in uiCache)
-        {
-            if (ui.Value.uiParentName == uiName)
-            {
-                foreach (var child in FindChild(ui.Key))
-                {
-                    uiChildList.Add(child);
-                }
-                uiChildList.Add(ui.Key);
-            }
-        }
-        return uiChildList;
-    }
-
-    void LateUpdate()
-    {
-        if (disposeDirty)
-        {
-            Resources.UnloadUnusedAssets();
-            disposeDirty = false;
-        }
-    }
-
-    bool disposeDirty = false;
-    /// <summary>
-    /// 销毁UI
-    /// </summary>
-    void Dispose(string uiName)
-    {
-        if (!uiCache.ContainsKey(uiName))
-        {
-            Debug.LogError("场景中没有此UI：" + uiName);
-            return;
-        }
-        BaseUI ui = uiCache[uiName];
-        uiCache.Remove(uiName);
-        DestroyImmediate(ui.gameObject);
-        disposeDirty = true;
-    }
+    #endregion 外部调用接口
 
     /// <summary>
     /// 创建UI
     /// </summary>
-    bool CreateUI(string uiName, string uiParentName)
+    private GameObject CreateUI(string uiPath)
     {
-        string path = UIDir + uiName;
-        GameObject uiPrefab = Resources.Load<GameObject>(path);
-        if (uiPrefab == null)
+        UIConfig uiConfig = GetUIConfig(uiPath);
+        if (uiConfig == null)
         {
-            Debug.LogError("UI预制体不存在：" + path);
-            return false;
+            Debug.LogError($"表里没有此ui，uiPath：{uiPath}");
+            return null;
         }
-        if (!string.IsNullOrEmpty(uiParentName) && !uiCache.ContainsKey(uiParentName))
+        GameObject uiGo = Instantiate(Resources.Load<GameObject>(uiPath));
+        uiGo.transform.SetParent(GetUILayerTrans(uiConfig.uiLayer));
+        uiGo.transform.localScale = Vector3.one;
+        uiGo.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+        uiGo.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+        uiGo.transform.localPosition = Vector3.zero;
+        return uiGo;
+    }
+
+    /// <summary>
+    /// 获取UI配置
+    /// </summary>
+    private UIConfig GetUIConfig(string uiPath)
+    {
+        if (m_UIPath2UIConfig.TryGetValue(uiPath, out UIConfig outUIConfig))
         {
-            Debug.LogError("UI父结点不存在：" + uiParentName);
-            return false;
+            return outUIConfig;
         }
-        BaseUI baseUI = Instantiate(uiPrefab, string.IsNullOrEmpty(uiParentName) ? uiCanvas.transform : uiCache[uiParentName].transform).GetComponent<BaseUI>();
-        baseUI.gameObject.name = uiName;
-        baseUI.uiParentName = uiParentName;
-        uiCache.Add(uiName, baseUI);
-        return true;
+        return null;
+    }
+
+    /// <summary>
+    /// 获取UI层级节点
+    /// </summary>
+    private Transform GetUILayerTrans(EUILayer uILayer)
+    {
+        if (m_Layer2Trans.TryGetValue(uILayer, out Transform outTrans))
+        {
+            return outTrans;
+        }
+        return null;
+    }
+
+    #region 私有方法
+
+    /// <summary>
+    /// 初始化数据
+    /// </summary>
+    private void InitData()
+    {
+        string dirPath = "Prefabs/UI/";
+        string p1 = dirPath + "UI_Win_Start";
+        string p2 = dirPath + "UI_Win_Game";
+        string p3 = dirPath + "UI_Win_Gameover";
+        string p4 = dirPath + "UI_Win_Shop";
+        m_UIPath2UIConfig.Add(p1, new UIConfig { uiPath = p1, uiLayer = (EUILayer)1 });
+        m_UIPath2UIConfig.Add(p2, new UIConfig { uiPath = p2, uiLayer = (EUILayer)2 });
+        m_UIPath2UIConfig.Add(p3, new UIConfig { uiPath = p3, uiLayer = (EUILayer)3 });
+        m_UIPath2UIConfig.Add(p4, new UIConfig { uiPath = p4, uiLayer = (EUILayer)4 });
     }
 
     /// <summary>
     /// 创建UI画布
     /// </summary>
-    Canvas CreateUICanvas(Camera uiCamera)
+    private void CreateUICanvas()
     {
-        GameObject canvas = new GameObject("UICanvas");
-        canvas.layer = 5;
-        Canvas uiCanvas = canvas.AddComponent<Canvas>();
-        uiCanvas.renderMode = RenderMode.ScreenSpaceCamera;
-        uiCanvas.worldCamera = uiCamera;
-        canvas.AddComponent<CanvasScaler>();
-        canvas.AddComponent<GraphicRaycaster>();
-
-        GameObject eventSystem = new GameObject("EventSystem");
-        eventSystem.AddComponent<EventSystem>();
-        eventSystem.AddComponent<StandaloneInputModule>();
-        eventSystem.transform.SetParent(canvas.transform);
-
-        DontDestroyOnLoad(uiCanvas);
-        return uiCanvas;
+        //创建Canvas
+        GameObject canvasGo = new GameObject("UICanvas");
+        canvasGo.layer = LayerMask.NameToLayer("UI");
+        m_UICanvas = canvasGo.AddComponent<Canvas>();
+        m_UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
+        if (m_UICamera == null)
+        {
+            CreateUICamera();
+        }
+        m_UICanvas.worldCamera = m_UICamera;
+        m_UICanvasScaler = canvasGo.AddComponent<CanvasScaler>();
+        canvasGo.AddComponent<GraphicRaycaster>();
+        DontDestroyOnLoad(m_UICanvas);
+        //创建EventSystem
+        GameObject eventSystemGo = new GameObject("EventSystem");
+        eventSystemGo.AddComponent<EventSystem>();
+        eventSystemGo.AddComponent<StandaloneInputModule>();
+        eventSystemGo.transform.SetParent(canvasGo.transform);
+        //创建Canvas下的结构
+        GameObject containerGo = new GameObject("UIContainer");
+        containerGo.transform.SetParent(canvasGo.transform, false);
+        m_UIContainer = containerGo.AddComponent<RectTransform>();
+        m_UIContainer.anchorMax = Vector2.one;
+        m_UIContainer.anchorMin = Vector2.zero;
+        m_UIContainer.offsetMin = Vector2.zero;
+        m_UIContainer.offsetMax = Vector2.zero;
+        string[] layerNames = Enum.GetNames(typeof(EUILayer));
+        for (int i = 0; i < layerNames.Length; i++)
+        {
+            GameObject layerGo = new GameObject(layerNames[i]);
+            layerGo.transform.SetParent(m_UIContainer, false);
+            layerGo.AddComponent<RectTransform>();
+            layerGo.GetComponent<RectTransform>().anchorMax = Vector2.one;
+            layerGo.GetComponent<RectTransform>().anchorMin = Vector2.zero;
+            layerGo.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+            layerGo.GetComponent<RectTransform>().offsetMax = Vector2.zero;
+            m_Layer2Trans.Add((EUILayer)i, layerGo.transform);
+        }
     }
 
     /// <summary>
     /// 创建UI相机
     /// </summary>
-    Camera CreateUICamera()
+    private void CreateUICamera()
     {
-        GameObject camera = new GameObject("UICamera");
-        uiCamera = camera.AddComponent<Camera>();
-        uiCamera.clearFlags = CameraClearFlags.Depth;
-        uiCamera.cullingMask = 1 << 5;
-        uiCamera.orthographic = true;
-        uiCamera.depth = 0;
-
-        DontDestroyOnLoad(uiCamera);
-        return uiCamera;
+        GameObject cameraGo = new GameObject("UICamera");
+        m_UICamera = cameraGo.AddComponent<Camera>();
+        m_UICamera.clearFlags = CameraClearFlags.Depth;
+        m_UICamera.cullingMask = 1 << 5;//TODO：根据不同项目设置
+        m_UICamera.orthographic = true;
+        m_UICamera.depth = 0;//TODO：根据不同项目设置
+        DontDestroyOnLoad(cameraGo);
     }
 
-    #endregion
+    #endregion 私有方法
 }

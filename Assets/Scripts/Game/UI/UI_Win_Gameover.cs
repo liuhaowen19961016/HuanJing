@@ -15,16 +15,16 @@ public class UI_Win_Gameover : BaseUI
     {
         btn_menu.onClick.AddListener(() =>
         {
-            UIMgr.Ins.Close<UI_Win_Gameover>(true);
-            UIMgr.Ins.Close<UI_Win_Game>(true);
-            UIMgr.Ins.Open<UI_Win_Start>();
+            UIMgr.Ins.Close(Const.gameoverPanelPath, true);
+            UIMgr.Ins.Close(Const.gamePanelPath, true);
+            UIMgr.Ins.Show(Const.startPanelPath);
             GameMgr.Ins.ResetGame();
         });
         btn_replay.onClick.AddListener(() =>
         {
-            UIMgr.Ins.Close<UI_Win_Gameover>(true);
-            UIMgr.Ins.Close<UI_Win_Game>(true);
-            //UIMgr.Ins.Open<UI_Win_Game>();
+            UIMgr.Ins.Close(Const.gameoverPanelPath, true);
+            UIMgr.Ins.Close(Const.gamePanelPath, true);
+            UIMgr.Ins.Show(Const.gamePanelPath);
             GameMgr.Ins.ResetGame();
             GameMgr.Ins.InitGame();
         });

@@ -13,6 +13,7 @@ public class UI_Win_Game : BaseUI
 
     private void Awake()
     {
+        img_bg = Camera.main.GetComponentInChildren<SpriteRenderer>();
         btn_pause.onClick.AddListener(() =>
         {
             GameMgr.Ins.isPause = !GameMgr.Ins.isPause;
@@ -51,7 +52,7 @@ public class UI_Win_Game : BaseUI
 
     private void OnDestroy()
     {
-        MsgSystem.AddListener(MsgConst.MoveFinish, OnMoveFinish);
+        MsgSystem.RemoveListener(MsgConst.MoveFinish, OnMoveFinish);
         MsgSystem.RemoveListener(MsgConst.EatDiamond, OnEatDiamond);
     }
 }

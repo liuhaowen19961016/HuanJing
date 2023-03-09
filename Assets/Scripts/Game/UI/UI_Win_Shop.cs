@@ -20,7 +20,7 @@ public class UI_Win_Shop : BaseUI
     {
         btn_back.onClick.AddListener(() =>
         {
-            UIMgr.Ins.Close<UI_Win_Shop>(true);
+            UIMgr.Ins.Close(Const.shopPanelPath, true);
         });
         btn_choose.onClick.AddListener(OnChooseBtn);
 
@@ -95,7 +95,10 @@ public class UI_Win_Shop : BaseUI
             {
                 v = 0.6f;
             }
-            m_SkinItems[i].SetScale(v);
+            if (m_SkinItems.Count >= i + 1)
+            {
+                m_SkinItems[i].SetScale(v);
+            }
         }
     }
 
@@ -145,6 +148,7 @@ public class UI_Win_Shop : BaseUI
                 go.transform.SetParent(m_sr.content, false);
                 itemSkin = go.GetComponent<Item_Skin>();
             }
+            itemSkin.Set(GameMgr.Ins.Config.skins[i]);
             itemSkin.SetGray(!GameMgr.Ins.GameData.isUnlock[i]);
         }
         RefreshChooseBtn();
@@ -179,7 +183,7 @@ public class UI_Win_Shop : BaseUI
         else
         {
             GameMgr.Ins.ChooseSkin(m_CurIndex);
-            UIMgr.Ins.Close<UI_Win_Shop>(true);
+            UIMgr.Ins.Close(Const.shopPanelPath, true);
         }
     }
 }
