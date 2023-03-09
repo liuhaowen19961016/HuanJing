@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 
-public class UI_Win_Game : MonoBehaviour
+public class UI_Win_Game : BaseUI
 {
     public Button btn_pause;
     public Text txt_score;
@@ -13,8 +13,6 @@ public class UI_Win_Game : MonoBehaviour
 
     private void Awake()
     {
-        gameObject.SetActive(false);
-
         btn_pause.onClick.AddListener(() =>
         {
             GameMgr.Ins.isPause = !GameMgr.Ins.isPause;
@@ -28,7 +26,6 @@ public class UI_Win_Game : MonoBehaviour
             }
         });
 
-        MsgSystem.AddListener(MsgConst.StartGame, StartGame);
         MsgSystem.AddListener(MsgConst.MoveFinish, OnMoveFinish);
         MsgSystem.AddListener(MsgConst.EatDiamond, OnEatDiamond);
     }
@@ -43,18 +40,17 @@ public class UI_Win_Game : MonoBehaviour
         txt_diamond.text = GameMgr.Ins.diamond.ToString();
     }
 
-    private void StartGame()
+    public override void OnView()
     {
-        gameObject.SetActive(true);
+        base.OnView();
 
-        img_bg.sprite = GameMgr.Ins.config.gameBg[Random.Range(0, GameMgr.Ins.config.gameBg.Length)];
+        img_bg.sprite = GameMgr.Ins.Config.gameBg[Random.Range(0, GameMgr.Ins.Config.gameBg.Length)];
         txt_score.text = GameMgr.Ins.score.ToString();
         txt_diamond.text = GameMgr.Ins.diamond.ToString();
     }
 
     private void OnDestroy()
     {
-        MsgSystem.RemoveListener(MsgConst.StartGame, StartGame);
         MsgSystem.AddListener(MsgConst.MoveFinish, OnMoveFinish);
         MsgSystem.RemoveListener(MsgConst.EatDiamond, OnEatDiamond);
     }

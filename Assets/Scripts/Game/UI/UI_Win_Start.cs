@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UI_Win_Start : MonoBehaviour
+public class UI_Win_Start : BaseUI
 {
     public Button btn_start;
     public Button btn_shop;
     public Button btn_rank;
     public Button btn_sound;
+    public Button btn_clearData;
+    public Image img_skin;
 
     private void Awake()
     {
         btn_start.onClick.AddListener(() =>
         {
+            UIMgr.Ins.Close<UI_Win_Start>();
             GameMgr.Ins.InitGame();
-            gameObject.SetActive(false);
         });
         btn_shop.onClick.AddListener(() =>
         {
-
+            UIMgr.Ins.Open<UI_Win_Shop>();
         });
         btn_rank.onClick.AddListener(() =>
         {
@@ -29,29 +31,37 @@ public class UI_Win_Start : MonoBehaviour
         {
 
         });
+        btn_clearData.onClick.AddListener(() =>
+        {
+            GameMgr.Ins.ClearData();
+            RefreshView();
+        });
+
+        MsgSystem.AddListener(MsgConst.ChooseSkin, OnChooseSkin);
     }
 
-    GameObjectPool pool_p1;
-    GameObjectPool pool_p2;
-
-    private void Update()
+    public override void OnView()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            pool_p1 = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(Resources.Load<GameObject>("Prefabs/Platform"), 11, transform);
-            pool_p2 = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(Resources.Load<GameObject>("Prefabs/Platform_Group1"), 11, transform);
-        }
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                GameObject go = pool_p1.Get();
-                go.SetActive(true);
-            }
-        }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            pool_p1.PutAll();
-        }
+        base.OnView();
+
+        RefreshView();
+    }
+
+    private void OnChooseSkin()
+    {
+        RefreshView();
+    }
+
+    /// <summary>
+    /// 刷新界面
+    /// </summary>
+    private void RefreshView()
+    {
+        img_skin.sprite = GameMgr.Ins.Config.skins[GameMgr.Ins.GameData.curSelecteSkin];
+    }
+
+    private void OnDestroy()
+    {
+        MsgSystem.RemoveListener(MsgConst.ChooseSkin, OnChooseSkin);
     }
 }

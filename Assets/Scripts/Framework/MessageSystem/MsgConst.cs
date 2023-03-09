@@ -5,6 +5,7 @@ public class MsgConst
 {
     public const string StartGame = "StartGame";
     public const string MoveFinish = "MoveFinish";
-    public const string Gameover = "Gameover";
     public const string EatDiamond = "EatDiamond";
+    public const string BuySkin = "BuySkin";
+    public const string ChooseSkin = "ChooseSkin";
 }

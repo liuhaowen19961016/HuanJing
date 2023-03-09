@@ -14,7 +14,7 @@ public class PlatformGroup : Platform
 
         foreach (var sr in sr_barriar)
         {
-            sr.sprite = GameMgr.Ins.GetRandomSprite_Barriar();
+            sr.sprite = Spawner.Ins.GetRandomSprite_Barriar();
         }
 
         if (randomDir && barriar != null)

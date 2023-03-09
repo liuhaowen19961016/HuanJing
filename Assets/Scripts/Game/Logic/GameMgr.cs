@@ -1,5 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 public enum EGameTheme
@@ -10,45 +16,42 @@ public enum EGameTheme
 
 public class GameMgr : MonoSingleton<GameMgr>
 {
-    public Player player;
-    private EGameTheme gameTheme;//主题
-    public Sprite platformSprite { get; set; }//平台图
-    public GameParam config { get; set; }//配置
+    private const string GameDataPath = "Assets/Data/GameData.xml";
+
+    public GameData GameData { get; set; }//游戏数据
+    public GameParam Config { get; set; }//配置
+    public Player player;//当前玩家
     public bool playerStartMove;
 
     public bool isGameover;
     public bool isPause;
+    public bool isFirstGame;
 
     public int score;
     public int diamond;
 
-    private void Awake()
+    /// <summary>
+    /// 加载数据
+    /// </summary>
+    public void LoadData()
     {
-        MsgSystem.AddListener(MsgConst.Gameover, Gameover);
-    }
-
-    private void OnDestroy()
-    {
-        MsgSystem.RemoveListener(MsgConst.Gameover, Gameover);
+        Config = GameParam.Get();
+        Load();
     }
 
     /// <summary>
-    /// 初始化游戏
+    /// 初始化游戏（点击开始游戏后）
     /// </summary>
     public void InitGame()
     {
-        config = GameParam.Get();
-
-        //游戏数据
+        //初始化游戏数据
         player = null;
         score = 0;
         diamond = 0;
         isPause = false;
         playerStartMove = false;
         isGameover = false;
-        gameTheme = (EGameTheme)Random.Range(0, 2);
-        platformSprite = GetRandomSprite_Common();
-        //地图数据
+        //初始化地图数据
         Spawner.Ins.InitMap();
 
         MsgSystem.Dispatch(MsgConst.StartGame);
@@ -75,9 +78,10 @@ public class GameMgr : MonoSingleton<GameMgr>
     /// <summary>
     /// 游戏结束
     /// </summary>
-    private void Gameover()
+    public void Gameover()
     {
-        UIMgr.Ins.gameoverPanel.SetActive(true);
+        isGameover = true;
+        UIMgr.Ins.Open<UI_Win_Gameover>();
     }
 
     /// <summary>
@@ -90,34 +94,75 @@ public class GameMgr : MonoSingleton<GameMgr>
     }
 
     /// <summary>
-    /// 得到随机的图（普通）
+    /// 花费钻石
     /// </summary>
-    private Sprite GetRandomSprite_Common()
+    public void CostDiamond(int cost)
     {
-        switch (gameTheme)
+        diamond -= cost;
+        Save();
+    }
+
+    /// <summary>
+    /// 解锁皮肤
+    /// </summary>
+    public void UnlockSkin(int index)
+    {
+        GameData.isUnlock[index] = true;
+        Save();
+        MsgSystem.Dispatch(MsgConst.BuySkin);
+    }
+
+    /// <summary>
+    /// 选择皮肤
+    /// </summary>
+    public void ChooseSkin(int index)
+    {
+        GameData.curSelecteSkin = index;
+        Save();
+        MsgSystem.Dispatch(MsgConst.ChooseSkin);
+    }
+
+    /// <summary>
+    /// 保存存档
+    /// </summary>
+    public void Save()
+    {
+        FileStream fileStream = new FileStream(GameDataPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+        StreamWriter streamWriter = new StreamWriter(fileStream, System.Text.Encoding.UTF8);
+        XmlSerializer xmlSerializer = new XmlSerializer(GameData.GetType());
+        xmlSerializer.Serialize(streamWriter, GameData);
+        streamWriter.Close();
+        fileStream.Close();
+        AssetDatabase.Refresh();
+    }
+
+    /// <summary>
+    /// 加载存档
+    /// </summary>
+    private void Load()
+    {
+        if (!File.Exists(GameDataPath))
         {
-            case EGameTheme.Grass:
-                return config.grassPlatform[Random.Range(0, config.grassPlatform.Length)];
-            case EGameTheme.Winter:
-                return config.winterPlatform[Random.Range(0, config.winterPlatform.Length)];
-            default:
-                return null;
+            GameData = new GameData();
+            GameData.Init();
+            isFirstGame = true;
+            Save();
+        }
+        else
+        {
+            FileStream fileStream = new FileStream(GameDataPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(GameData));
+            GameData = (GameData)xmlSerializer.Deserialize(fileStream);
+            fileStream.Close();
         }
     }
 
     /// <summary>
-    /// 得到随机的图（障碍）
+    /// 清空存档
     /// </summary>
-    public Sprite GetRandomSprite_Barriar()
+    public void ClearData()
     {
-        switch (gameTheme)
-        {
-            case EGameTheme.Grass:
-                return config.grassPlatform_barriar[Random.Range(0, config.grassPlatform_barriar.Length)];
-            case EGameTheme.Winter:
-                return config.winterPlatform_barriar[Random.Range(0, config.winterPlatform_barriar.Length)];
-            default:
-                return null;
-        }
+        GameData.Init();
+        Save();
     }
 }

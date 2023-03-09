@@ -28,7 +28,7 @@ public class TooltipMgr : MonoSingleton<TooltipMgr>
     /// </summary>
     public void Show(TooltipData data)
     {
-        GameObject go = Instantiate(Resources.Load<GameObject>("Item_Tooltip"));
+        GameObject go = Instantiate(Resources.Load<GameObject>("Prefabs/Item_Tooltip"));
         go.transform.SetParent(ParentRect, false);
         Item_Tooltip subView = go.GetComponent<Item_Tooltip>();
 
@@ -194,19 +194,11 @@ public class Tooltip
     }
 
     /// <summary>
-    /// 设置是否自动关闭
-    /// </summary>
-    public Tooltip SetIsAutoClose(bool isAutoClose)
-    {
-        data.isAutoClose = isAutoClose;
-        return this;
-    }
-
-    /// <summary>
     /// 设置自动关闭的秒数
     /// </summary>
     public Tooltip SetAutoCloseSec(float autoCloseSec)
     {
+        data.isAutoClose = true;
         data.autoCloseSec = autoCloseSec;
         return this;
     }

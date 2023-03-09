@@ -21,10 +21,15 @@ public class GameParam : ScriptableObject
     public GameObject go_dieEffect;//死亡特效预制体
     public GameObject go_diamond;//钻石预制体
     public GameObject go_player;//玩家预制体
+    public GameObject go_skin;//皮肤预制体
     public int groupCountMax = 6;//每个平台组最大数量
     public int groupCountMin = 3;//每个平台组最小数量
     public Sprite[] grassPlatform;
     public Sprite[] winterPlatform;
     public Sprite[] grassPlatform_barriar;
     public Sprite[] winterPlatform_barriar;
+    public Sprite[] skins;
+    public Sprite[] playerSkins;
+    public string[] skinNames;
+    public int[] unlockPrice;
 }

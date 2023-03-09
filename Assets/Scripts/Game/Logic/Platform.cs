@@ -23,7 +23,7 @@ public class Platform : PoolObject
     {
         foreach (var sr in sr_common)
         {
-            sr.sprite = GameMgr.Ins.platformSprite;
+            sr.sprite = Spawner.Ins.platformSprite;
         }
 
         if (GameMgr.Ins.playerStartMove)

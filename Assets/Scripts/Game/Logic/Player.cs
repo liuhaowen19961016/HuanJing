@@ -24,6 +24,15 @@ public class Player : MonoBehaviour
     {
         rigid.gravityScale = 0;
         canMove = true;
+        SetSkin();
+    }
+
+    /// <summary>
+    /// 设置皮肤
+    /// </summary>
+    private void SetSkin()
+    {
+        sr.sprite = GameMgr.Ins.Config.playerSkins[GameMgr.Ins.GameData.curSelecteSkin];
     }
 
     private void Update()
@@ -52,12 +61,12 @@ public class Player : MonoBehaviour
         if (isPressRight)
         {
             transform.localScale = new Vector3(1, 1, 1);
-            nextPos = curPlatformPos + new Vector3(GameMgr.Ins.config.platformOffset.x, GameMgr.Ins.config.platformOffset.y);
+            nextPos = curPlatformPos + new Vector3(GameMgr.Ins.Config.platformOffset.x, GameMgr.Ins.Config.platformOffset.y);
         }
         else
         {
             transform.localScale = new Vector3(-1, 1, 1);
-            nextPos = curPlatformPos + new Vector3(-GameMgr.Ins.config.platformOffset.x, GameMgr.Ins.config.platformOffset.y);
+            nextPos = curPlatformPos + new Vector3(-GameMgr.Ins.Config.platformOffset.x, GameMgr.Ins.Config.platformOffset.y);
         }
         moveSequence = DOTween.Sequence();
         moveSequence.Append(transform.DOMove(nextPos + new Vector3(0, 0.8f, 0), 0.05f).SetEase(Ease.Linear));
@@ -119,7 +128,7 @@ public class Player : MonoBehaviour
         GameMgr.Ins.isGameover = true;
         TimerMgr.Ins.Register(1, onComplete: () =>
           {
-              MsgSystem.Dispatch(MsgConst.Gameover);
+              GameMgr.Ins.Gameover();
           });
     }
 
