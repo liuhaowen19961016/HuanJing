@@ -43,6 +43,9 @@ public enum EUILayer
 /// </summary>
 public class UIMgr : MonoSingleton<UIMgr>
 {
+    /// <summary>
+    /// UI界面配置
+    /// </summary>
     public class UIConfig
     {
         public string uiPath;
