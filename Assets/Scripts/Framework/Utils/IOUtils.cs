@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.IO;
+﻿using System.IO;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
@@ -25,6 +24,15 @@ public static class IOUtils
     }
 
     /// <summary>
+    /// 重新整理路径
+    /// </summary>
+    public static string ReconstructPath(string path)
+    {
+        path = path.Replace('\\', '/').Replace("//", "/");
+        return path;
+    }
+
+    /// <summary>
     /// 打开文件夹
     /// </summary>
     public static void OpenFolder(string path)
@@ -33,6 +41,8 @@ public static class IOUtils
         process.StartInfo.FileName = path;
         process.Start();
     }
+
+    //TODO
 
     /// <summary>
     /// 拷贝单个文件

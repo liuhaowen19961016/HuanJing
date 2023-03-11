@@ -1,29 +1,29 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class Test : MonoBehaviour
 {
-    private GameObjectPool bulletPool;
+    public Text txt;
 
-    private GameObject bullet;
-
-    private void Awake()
+    private void Start()
     {
-        bulletPool = ObjectPoolMgr.Ins.GetOrCreateGameObjectPool(Resources.Load<GameObject>("Prefabs/Bullet"), 10, transform);
+        MsgSystem.AddListener<int>(MsgConst.StartGame, Test2);
+        MsgSystem.RemoveListener(MsgConst.EatDiamond, Test1);
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            bullet = bulletPool.Get();
-        }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            bulletPool.Put(bullet);
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            bulletPool.PutAll();
-        }
+
+    }
+
+    private void Test1()
+    {
+
+    }
+
+    private void Test2(int a)
+    {
+
     }
 }
