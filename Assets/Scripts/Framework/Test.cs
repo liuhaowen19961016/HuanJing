@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,8 +10,8 @@ public class Test : MonoBehaviour
 
     private void Start()
     {
-        MsgSystem.AddListener<int>(MsgConst.StartGame, Test2);
-        MsgSystem.RemoveListener(MsgConst.EatDiamond, Test1);
+        Debug.Log(Path.GetDirectoryName("Assets/Root/l.txt"));
+        Debug.Log(Path.GetDirectoryName("Assets/Root/l"));
     }
 
     private void Update()
@@ -18,13 +19,12 @@ public class Test : MonoBehaviour
 
     }
 
-    private void Test1()
+    [MenuItem("Tools/move")]
+    private static void Test12()
     {
-
-    }
-
-    private void Test2(int a)
-    {
-
+        string srcDirPath = "Assets/Data";
+        string destDirPath = "Assets/NewData/Game";
+        IOUtils.CopyFolder(srcDirPath, destDirPath, false);
+        AssetDatabase.Refresh();
     }
 }
