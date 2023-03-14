@@ -97,14 +97,6 @@ public static class StringUtils
     }
 
     /// <summary>
-    /// 格式化超出的文本
-    /// </summary>
-    public static string FormatBeyondText(string str)
-    {
-        return str;
-    }
-
-    /// <summary>
     /// 得到字符串长度(中文占两个 英文占一个)
     /// </summary>
     public static int GetLength(string str)
