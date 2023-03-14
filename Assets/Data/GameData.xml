@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <GameData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <totalDimaond>5813</totalDimaond>
-  <bestScore>11</bestScore>
+  <totalDimaond>10</totalDimaond>
+  <bestScore>0</bestScore>
   <isUnlock>
     <boolean>true</boolean>
-    <boolean>true</boolean>
-    <boolean>true</boolean>
-    <boolean>true</boolean>
+    <boolean>false</boolean>
+    <boolean>false</boolean>
+    <boolean>false</boolean>
   </isUnlock>
-  <curSelecteSkin>2</curSelecteSkin>
+  <curSelecteSkin>0</curSelecteSkin>
   <musicIsOn>true</musicIsOn>
 </GameData>

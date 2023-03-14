@@ -98,7 +98,7 @@ public class GameMgr : MonoSingleton<GameMgr>
     /// </summary>
     public void CostDiamond(int cost)
     {
-        diamond -= cost;
+        GameData.totalDimaond -= cost;
         Save();
     }
 

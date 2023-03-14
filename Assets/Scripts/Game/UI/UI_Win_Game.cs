@@ -13,17 +13,19 @@ public class UI_Win_Game : BaseUI
 
     private void Awake()
     {
-        img_bg = Camera.main.GetComponentInChildren<SpriteRenderer>();
         btn_pause.onClick.AddListener(() =>
         {
+            Debug.Log(GameMgr.Ins.isPause);
             GameMgr.Ins.isPause = !GameMgr.Ins.isPause;
             if (GameMgr.Ins.isPause)
             {
-                btn_pause.GetComponent<Image>().sprite = Resources.LoadAll<Sprite>("UIs/UI2")[0];
+                btn_pause.GetComponent<Image>().sprite = Resources.LoadAll<Sprite>("UIs/UI1")[4];
+                Time.timeScale = 0;
             }
             else
             {
-                btn_pause.GetComponent<Image>().sprite = Resources.LoadAll<Sprite>("UIs/UI1")[4];
+                btn_pause.GetComponent<Image>().sprite = Resources.LoadAll<Sprite>("UIs/UI2")[0];
+                Time.timeScale = 1;
             }
         });
 
@@ -44,7 +46,7 @@ public class UI_Win_Game : BaseUI
     public override void OnView()
     {
         base.OnView();
-
+        img_bg = Camera.main.GetComponentInChildren<SpriteRenderer>();
         img_bg.sprite = GameMgr.Ins.Config.gameBg[Random.Range(0, GameMgr.Ins.Config.gameBg.Length)];
         txt_score.text = GameMgr.Ins.score.ToString();
         txt_diamond.text = GameMgr.Ins.diamond.ToString();
